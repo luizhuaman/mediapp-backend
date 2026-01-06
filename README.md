@@ -188,10 +188,14 @@ public class GlobalExceptionHandler {
 </details>
 
 <details>
-### <b>Mini lección de excepciones</b>
+<summary><b>🔍 Ver implementación: Excepciones</b></summary>
+
+[Texto visible](https://eudriscabrera.com/blog/2024/manejo-de-excepciones-en-java)
 
 En Java tenemos dos tipos de errores. Aquellos que heredan de la clase Error y los de la clase exception y así mismo ambos heredan de la clase throwable.
 Una exception no es más que un error del cual podemos volver (Ej. Division ente cero), mientras que los errores terminan con el programa (Ej. Desborde de la memoria)
+
+![Jerarquía de Excepciones](assets/diagram_errors.jpg)
 
 Entonces dentro de las excepciones tenemos checked y unchecked exceptions.
 Unchecked Exceptions: Heredan de la clase Runtime Exception y son excepciones que no necesitan ser atrapadas debido a que pueden ser prevenidas a tráves del código limpio por ejemplo comprobar que exista el indice del array (Ej. ArrayIndexOutOfBoundsException)
@@ -222,3 +226,5 @@ Este proyecto es mantenido por **Luis Huaman**, un profesional híbrido (Backend
 * **Certificaciones:** Microsoft Certified: Azure Data Fundamentals (DP-900). En ruta hacia DP-600.
 * **Intereses:** Inversiones bursátiles (BVL), automatización con Linux y optimización de rendimiento.
 * **Filosofía de Trabajo:** Inspirado en la mejora continua (*Kaizen*) y principios de libros como *"Atomic Habits"* y *"The 5 AM Club"*.
+
+[Visita mi LinkedIn](https://www.linkedin.com/in/luishuaman94)
