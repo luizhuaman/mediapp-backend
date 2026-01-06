@@ -187,6 +187,64 @@ public class GlobalExceptionHandler {
 ```
 </details>
 
+<details>
+<summary><b>🔍 Ver implementación: Manejo Centralizado de Errores (@ControllerAdvice)</b></summary>
+
+El proyecto implementa `ProblemDetails` (RFC 7807) para estandarizar las respuestas de error, desacoplando la lógica de negocio del manejo de excepciones HTTP.
+
+```java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ProblemDetail handleNotFound(ResourceNotFoundException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ProblemDetail handleValidationErrors(MethodArgumentNotValidException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problemDetail.setTitle("Error de Validación");
+        
+        // Mapea los errores de campo a un formato legible
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error -> 
+            errors.put(error.getField(), error.getDefaultMessage()));
+            
+        problemDetail.setProperty("errors", errors);
+        return problemDetail;
+    }
+}
+```
+</details>
+
+<details>
+<summary><b>Mini lección de excepciones</b></summary>
+
+En Java tenemos dos tipos de errores. Aquellos que heredan de la clase Error y los de la clase exception y así mismo ambos heredan de la clase throwable.
+Una exception no es más que un error del cual podemos volver (Ej. Division ente cero), mientras que los errores terminan con el programa (Ej. Desborde de la memoria)
+
+Entonces dentro de las excepciones tenemos checked y unchecked exceptions.
+Unchecked Exceptions: Heredan de la clase Runtime Exception y son excepciones que no necesitan ser atrapadas debido a que pueden ser prevenidas a tráves del código limpio por ejemplo comprobar que exista el indice del array (Ej. ArrayIndexOutOfBoundsException)
+Checked Exceptions: Son excepciones que se detectan en tiempo de compilación por el compilador que las detecta como posible fallo y que no pueden ser prevenidas por el programador porque pueden depender de factores externos como que el usuario introduzca un numero invalido o cero (Ej. ArithmeticException).
+Finalmente es una buena práctica ir de la exception más particular a la más general como se muestra a continuación:
+
+```java
+    try {
+        // Code that might throw exceptions
+    } catch (FileNotFoundException e) {
+        // Handle specific file not found error
+        System.err.println("File not found: " + e.getMessage());
+    } catch (IOException e) {
+        // Handle general I/O errors (parent of FileNotFoundException)
+        System.err.println("I/O error: " + e.getMessage());
+    } catch (Exception e) {
+        // Handle any other general exception
+        System.err.println("An unexpected error occurred: " + e.getMessage());
+    }
+```
+</details>
+
 ## 👨‍💻 Sobre el Desarrollador
 
 Este proyecto es mantenido por **Luis Huaman**, un profesional híbrido (Backend Developer & Data Engineer) apasionado por la calidad del software y la inteligencia de datos.
