@@ -187,7 +187,7 @@ public class GlobalExceptionHandler {
 ```
 </details>
 
-
+<details>
 ### <b>Mini lección de excepciones</b>
 
 En Java tenemos dos tipos de errores. Aquellos que heredan de la clase Error y los de la clase exception y así mismo ambos heredan de la clase throwable.
@@ -212,6 +212,7 @@ Finalmente es una buena práctica ir de la exception más particular a la más g
         System.err.println("An unexpected error occurred: " + e.getMessage());
     }
 ```
+</details>
 
 ## 👨‍💻 Sobre el Desarrollador
 
