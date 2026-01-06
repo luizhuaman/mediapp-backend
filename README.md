@@ -187,39 +187,8 @@ public class GlobalExceptionHandler {
 ```
 </details>
 
-<details>
-<summary><b>🔍 Ver implementación: Manejo Centralizado de Errores (@ControllerAdvice)</b></summary>
 
-El proyecto implementa `ProblemDetails` (RFC 7807) para estandarizar las respuestas de error, desacoplando la lógica de negocio del manejo de excepciones HTTP.
-
-```java
-@RestControllerAdvice
-public class GlobalExceptionHandler {
-
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ProblemDetail handleNotFound(ResourceNotFoundException ex) {
-        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ProblemDetail handleValidationErrors(MethodArgumentNotValidException ex) {
-        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
-        problemDetail.setTitle("Error de Validación");
-        
-        // Mapea los errores de campo a un formato legible
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error -> 
-            errors.put(error.getField(), error.getDefaultMessage()));
-            
-        problemDetail.setProperty("errors", errors);
-        return problemDetail;
-    }
-}
-```
-</details>
-
-<details>
-<summary><b>Mini lección de excepciones</b></summary>
+### <b>Mini lección de excepciones</b>
 
 En Java tenemos dos tipos de errores. Aquellos que heredan de la clase Error y los de la clase exception y así mismo ambos heredan de la clase throwable.
 Una exception no es más que un error del cual podemos volver (Ej. Division ente cero), mientras que los errores terminan con el programa (Ej. Desborde de la memoria)
@@ -243,7 +212,6 @@ Finalmente es una buena práctica ir de la exception más particular a la más g
         System.err.println("An unexpected error occurred: " + e.getMessage());
     }
 ```
-</details>
 
 ## 👨‍💻 Sobre el Desarrollador
 
