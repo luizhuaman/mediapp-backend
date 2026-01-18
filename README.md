@@ -190,7 +190,7 @@ public class GlobalExceptionHandler {
 <details>
 <summary><b>🔍 Ver implementación: Excepciones</b></summary>
 
-[Texto visible](https://eudriscabrera.com/blog/2024/manejo-de-excepciones-en-java)
+[URL +Detalle](https://eudriscabrera.com/blog/2024/manejo-de-excepciones-en-java)
 
 En Java tenemos dos tipos de errores. Aquellos que heredan de la clase Error y los de la clase exception y así mismo ambos heredan de la clase throwable.
 Una exception no es más que un error del cual podemos volver (Ej. Division ente cero), mientras que los errores terminan con el programa (Ej. Desborde de la memoria)
