@@ -1,3 +1,61 @@
+# 📜 Algo de historia
+
+---
+
+Spring Framework se creo para el Java Enterprise Edition.
+Spring Boot nace para facilitar el uso de spring Framework.
+En spring framework tenemos módulos para Data Access (JDBC, JPA, Hibernate), Web (MVC, REST), Security, Testing, AOP, Aspects, Core Container, etc.
+Cuando trabajas con spring boot internamente trabajas con spring framework.
+    Spring Boot 3.x = Spring Framework 6 , exige java 17 como mínimo
+    Spring Boot 2.x = Spring Framework 5 , exige java 8 hasta java 21
+    Spring Boot 1.x = Spring Framework 4 , exige java 6 hasta java 8
+
+Servicios Rest comunicaran al Backend con el Frontend con usos de JSON. Esto viaja sobre el protocolo HTTP con los diferentes verbos GET, POST, PUT, DELETE.
+
+Un enfoque monolítico en el desarrollo de software (y específicamente en proyectos Java) es una arquitectura tradicional donde toda la aplicación se construye como una única pieza unificada e indivisible.
+
+Oracle JDK 17 no va cobrar hasta un año despues del siguiente LTS (Java 21)
+LTS: Last Time Support.
+Ahora cada 6 meses se lanzan un LTS
+
+---
+
+# Comparativa de Arquitecturas: Monolito vs. Microservicios
+
+| Característica | Enfoque Monolítico (Monolito) | Arquitectura de Microservicios |
+| :--- | :--- | :--- |
+| **Estructura de Código** | Todo el sistema (UI, lógica, acceso a datos) convive en un único proyecto y base de código. | El sistema se divide en servicios pequeños, independientes y especializados por dominio de negocio. |
+| **Despliegue** | Se compila y despliega como una única unidad (un solo archivo `.jar` o `.war`). | Cada servicio se compila y despliega de forma totalmente independiente (usualmente en contenedores). |
+| **Escalabilidad** | Unidimensional. Para escalar un módulo pesado, debes clonar (escalar) toda la aplicación completa. | Multidimensional. Puedes escalar únicamente el servicio que está recibiendo alto tráfico. |
+| **Tolerancia a Fallos** | Baja. Un error crítico en un módulo (ej. un `OutOfMemory`) puede hacer caer a toda la aplicación. | Alta. Si un servicio falla (ej. el servicio de correos), el resto del sistema sigue operando con normalidad. |
+| **Stack Tecnológico** | Rígido. Toda la aplicación está atada a un único lenguaje de programación y versión de framework. | Flexible. Cada microservicio puede estar escrito en el lenguaje y base de datos que mejor resuelva su problema. |
+| **Complejidad Inicial** | Baja. Es muy fácil y rápido de crear, desarrollar y probar localmente al inicio del proyecto. | Alta. Requiere infraestructura compleja desde el día uno (API Gateways, orquestadores, descubrimiento de servicios). |
+| **Mantenimiento a largo plazo**| Difícil. Con el crecimiento, el código tiende a acoplarse y convertirse en "código espagueti". | Más manejable. Al estar el código aislado, los equipos pueden trabajar en paralelo sin pisarse los cambios. |
+| **Pruebas (Testing)** | Las pruebas de integración son más sencillas porque no dependen de red ni servicios externos. | Las pruebas de integración son complejas debido a la comunicación por red y la asincronía entre servicios. |
+
+---
+# Inyecciones de dependencias 
+
+## Internamente lombok realiza el get y set:
+
+    @NoArgsConstructor: Para prescindir del constructor, es decir, que no se pueda crear una instancia de la clase.
+    @AllArgsConstructor: Para prescindir del constructor con sus atributos.
+    @Data: getter y setter, toString and equalsand hashcode
+
+## Estos 4 decoradores es igual a @Data:
+
+    @Getter
+    @Setter
+    @ToString
+    @EqualsAndHashCode
+
+**Nota: no confundir con los Record, que apareció en java 17. Estos sirven para generar objetos inmutables.**
+
+    public record Person(String name, int age) { 
+    }
+
+---
+
 # 🏥 Mediapp Backend
 
 Este repositorio contiene el código fuente de la API RESTful para el sistema **Mediapp**. El proyecto está construido utilizando **Java** y **Spring Boot**, siguiendo una arquitectura de capas y buenas prácticas de desarrollo backend.
@@ -12,6 +70,52 @@ Este repositorio contiene el código fuente de la API RESTful para el sistema **
 * **Construcción:** Maven
 * **Documentación API:** OpenAPI (Swagger)
 
+---
+
+## 🚀 Arquitectura de Capas Inicial
+
+    @RestController: Indica que la clase es un controlador de API RESTful.
+    Servicio REST: pieza de software que se comunica intercambiando mensajes en el protocola HTTP.
+    Se debe definir el punto de acceso o "endpoint" de la API.
+        @RequestMapping > @GetMapping | @PostMapping | @PutMapping | @DeleteMapping
+![Arquitectura Inicial](assets/Resumenes_arquitectura.png)
+
+Spring Stereotype: categorizar o contextualizar a algo bajo un conjunto de características
+
+    @Service: Va tener logica de negocio
+    @Repository: La clase va tener acceso a datos
+    @Component: Utilitarios / cuando no se puede categorizar en las otras
+    @Controller: Controlador de la API / no es popular
+    @RestController: Controlador de la API que devuelve JSON
+
+---
+
+Spring crea un instancia en memoria que son como beans de tipo Singleton (instancia compartida a lo largo de la aplicación, 
+para que se comunique entre capa y capa), en service llamamos a esa instancia con @autowired, lo mismo pasa con @Service.
+
+![Arquitectura Inicial](assets/patientRepoIoC.png)
+
+![Arquitectura Inicial](assets/patientServiceIoC.jpg)
+
+Si comentamos el @autowired y declaramos por constructor, seria asi (ya que el autowired esta lanzando una alerta)
+    @AllArgsConstructor: Para prescindir del constructor con sus atributos, es mas limpio.
+    @RequiredArgsConstructor: Quiero un constructor con campos obligatorios o requeridos. Inyección de dependencia con campos requeridos.
+![Arquitectura Inicial](assets/commentAutowired.png)
+
+Y nos ahorramos codigo si usamos @AllArgsConstructor
+
+![Arquitectura Inicial](assets/allargsconstructor.png)
+
+---
+
+Interfaces: para que el código sea más limpio y más legible.
+La buena práctica es trabajar orientado a interfaces, para que el código se desacople entre capa y capa por si cambia alguna implementación no afecta las capas de arriba.
+
+```java
+    public class PatientRepoImpl implements IPatientRepo {
+
+    }
+```
 ---
 
 ## 🚀 Guía de Inicio Rápido
@@ -39,6 +143,11 @@ Asegúrate de tener instalado:
     spring.jpa.hibernate.ddl-auto=update
     ```
 
+    **Diccionario properties como server.port**
+
+    `https://docs.spring.io/spring-boot/appendix/application-properties/index.html`
+
+
 3.  **Ejecutar la aplicación:**
     ```bash
     ./mvnw spring-boot:run
@@ -56,6 +165,7 @@ Una vez iniciada la aplicación, puedes probar los endpoints y ver la documentac
 * **OpenAPI JSON:** `http://localhost:8080/v3/api-docs`
 
 ---
+
 
 ## 📦 Comandos de Construcción (Maven)
 

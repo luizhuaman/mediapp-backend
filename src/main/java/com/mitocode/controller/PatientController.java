@@ -4,6 +4,7 @@ import com.mitocode.model.Patient;
 import com.mitocode.service.impl.PatientServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,13 +40,20 @@ public class PatientController {
     }
 
     @GetMapping("/{id}")
-    public Patient findById(@PathVariable("id") Integer id){
-        return service.findById(id);
+    public ResponseEntity<Patient> findById(@PathVariable("id") Integer id){
+        Patient obj = service.findById(id);
+
+        //Cualquiera de las dos opciones funciona y llega a response ok 200
+        return ResponseEntity.ok(obj);
+        //return new ResponseEntity<>(obj, HttpStatus.OK);
     }
 
     @PostMapping
-    public Patient save(@RequestBody Patient patient){
-        return service.save(patient);
+    public ResponseEntity<Patient> save(@RequestBody Patient patient){
+
+        Patient obj = service.save(patient);
+
+        return ResponseEntity.created(null).body(obj);
     }
 
     //mapeamos el id en la clase Patient para que el metodo PUT sepa que tiene que actualizar un registro
