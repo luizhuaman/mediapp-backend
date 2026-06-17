@@ -135,12 +135,34 @@ Asegúrate de tener instalado:
     ```
 
 2.  **Configurar Base de Datos:**
+
+    Spring boot tiene que tener su dependencia de JPA que se debe añadir en pom.xml
+    ```xml
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>    
+    ```
+    
     Abre el archivo `src/main/resources/application.properties` y configura tus credenciales:
     ```properties
+    #JPQL -> SQL Oriented a objects (para checar logs, queries de las consultas.)
+    spring.jpa.show-sql=true
+    
+    #ORM (Object Relationship Mapping) - permite manipulación de los objetos de la BD a traves de código java
+    #update: solo agrega cambios (columnas adicionales), no modifica lo ya creado
+    spring.jpa.hibernate.ddl-auto=update
+
+    spring.datasource.driver-class-name=org.postgresql.Driver
+    #Desde Spring Boot 3.1
+    spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+    #para conexión a la base de datos
     spring.datasource.url=jdbc:postgresql://localhost:5432/mediapp_db
     spring.datasource.username=tu_usuario
     spring.datasource.password=tu_password
-    spring.jpa.hibernate.ddl-auto=update
+    
+    #Si colocamos ${DB_USERNAME}, entonces java va a buscar la variable de entorno DB_USERNAME en tu S.O.
+    #otra opcion es que este configurada en el webLogic o en el archivo .env o en el archivo application.properties por ultimo
     ```
 
     **Diccionario properties como server.port**
