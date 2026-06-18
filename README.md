@@ -127,6 +127,11 @@ Entre interfaces se heredan (extends):
 
 ---
 
+**Otros conceptos: **
+Optional: para que el atributo sea opcional, se controla el nulo y mitigar el mensaje NullPointerException.
+
+---
+
 ## 🚀 Guía de Inicio Rápido
 
 ### Prerrequisitos
