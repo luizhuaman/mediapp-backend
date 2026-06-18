@@ -110,12 +110,21 @@ Y nos ahorramos codigo si usamos @AllArgsConstructor
 
 Interfaces: para que el código sea más limpio y más legible.
 La buena práctica es trabajar orientado a interfaces, para que el código se desacople entre capa y capa por si cambia alguna implementación no afecta las capas de arriba.
+El JpaRepository tiene implementado el CRUD y sus atributos son -> <Clase, ID>
 
+Solo una clase implementa una interface, pero puede implementar varias interfaces (implements).
 ```java
     public class PatientRepoImpl implements IPatientRepo {
 
     }
 ```
+
+Entre interfaces se heredan (extends):
+```java
+    public interface IPatientRepo extends JpaRepository<Objeto, Key> {
+    }
+```
+
 ---
 
 ## 🚀 Guía de Inicio Rápido
@@ -161,16 +170,37 @@ Asegúrate de tener instalado:
     spring.datasource.username=tu_usuario
     spring.datasource.password=tu_password
     
-    #Si colocamos ${DB_USERNAME}, entonces java va a buscar la variable de entorno DB_USERNAME en tu S.O.
-    #otra opcion es que este configurada en el webLogic o en el archivo .env o en el archivo application.properties por ultimo
+    #Si colocamos ${DB_USERNAME}, entonces java va a buscar la variable de entorno DB_USERNAME en tu S.O. o en tu .env
+    #otra opcion es que este configurada en el webLogic jboss o en el archivo .env o en el archivo application.properties por ultimo
     ```
 
     **Diccionario properties como server.port**
 
     `https://docs.spring.io/spring-boot/appendix/application-properties/index.html`
 
+3. Ejemplo de un Entity para que lo lea como una tabla en la base de datos:
 
-3.  **Ejecutar la aplicación:**
+    integer < long - UUID (caracateres hexadecimales)
+    @Column sirve para especificar los atributos de la columna en la tabla.
+    @Table sirve para renombrar la tabla en la base de datos.
+         @Table(name = "patient", schema = "campsys")
+    Java maneja la convencion lowerCamelCase y la BD snake first_name
+
+```java
+@Entity
+@Table(name = "patient")
+public class Patient {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    //@Column sirve para especificar los atributos de la columna en la tabla.
+    @Column(nullable = false, length = 70)
+    private String firstName;
+}
+```
+
+4. **Ejecutar la aplicación:**
     ```bash
     ./mvnw spring-boot:run
     ```
