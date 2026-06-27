@@ -107,7 +107,7 @@ Y nos ahorramos codigo si usamos @AllArgsConstructor
 ![Arquitectura Inicial](assets/allargsconstructor.png)
 
 ---
-
+## Interfaces
 Interfaces: para que el código sea más limpio y más legible.
 La buena práctica es trabajar orientado a interfaces, para que el código se desacople entre capa y capa por si cambia alguna implementación no afecta las capas de arriba.
 El JpaRepository tiene implementado el CRUD y sus atributos son -> <Clase, ID>
@@ -116,6 +116,16 @@ Solo una clase implementa una interface, pero puede implementar varias interface
 ```java
     public class PatientRepoImpl implements IPatientRepo {
 
+    }
+
+    public interface IPatientService {
+
+    Patient save(Patient patient);
+    Patient update(Integer id, Patient patient);
+    List<Patient> findAll();
+    Patient findById(Integer id);
+    void delete(Integer id);
+    
     }
 ```
 
@@ -127,8 +137,9 @@ Entre interfaces se heredan (extends):
 
 ---
 
-**Otros conceptos: **
+## Otros conceptos:
 Optional: para que el atributo sea opcional, se controla el nulo y mitigar el mensaje NullPointerException.
+
 
 ---
 
@@ -183,9 +194,10 @@ Asegúrate de tener instalado:
 
     `https://docs.spring.io/spring-boot/appendix/application-properties/index.html`
 
-3. Ejemplo de un Entity para que lo lea como una tabla en la base de datos:
 
-    integer < long - UUID (caracateres hexadecimales)
+3. **Spring Data JPA:** Ejemplo de un Entity para que lo lea como una tabla en la base de datos:
+
+    integer < long , UUID (caracateres hexadecimales como llave primaria)
     @Column sirve para especificar los atributos de la columna en la tabla.
     @Table sirve para renombrar la tabla en la base de datos.
          @Table(name = "patient", schema = "campsys")
