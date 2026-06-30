@@ -7,7 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 //@RestController: esta notacion da inicio al API REST (COMUNICACION HTTP) -> verbos (GET, POST, PUT, DELETE)
@@ -48,24 +50,32 @@ public class PatientController {
         //return new ResponseEntity<>(obj, HttpStatus.OK);
     }
 
+    //@RequestBody -> es para leer el cuerpo de la peticion/request
     @PostMapping
     public ResponseEntity<Patient> save(@RequestBody Patient patient){
 
         Patient obj = service.save(patient);
 
-        return ResponseEntity.created(null).body(obj);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(obj.getIdPatient()).toUri();
+
+        return ResponseEntity.created(location).build();
     }
 
     //mapeamos el id en la clase Patient para que el metodo PUT sepa que tiene que actualizar un registro
+    //como el body no tiene el id, se usa el setIdPatient(id)
     @PutMapping("/{id}")
-    public Patient update(@PathVariable("id") Integer id, @RequestBody Patient patient){
+    public ResponseEntity<Patient> update(@PathVariable("id") Integer id, @RequestBody Patient patient){
         patient.setIdPatient(id);
-        return service.update(id ,patient);
+        Patient obj = service.update(id ,patient);
+
+        return ResponseEntity.ok(obj);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable("id") Integer id){
+    public ResponseEntity<Void> delete(@PathVariable("id") Integer id){
+
         service.delete(id);
+        return ResponseEntity.noContent().build(); // 204 NO CONTENT //404 NOT FOUND : recurso no encontrado
     }
 
     /*

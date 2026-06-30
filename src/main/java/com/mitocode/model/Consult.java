@@ -23,7 +23,7 @@ public class Consult {
 
     @ManyToOne //FK
     @JoinColumn(name = "id_patient", nullable = false, foreignKey = @ForeignKey(name = "FK_CONSULT_PATIENT"))
-    private Patient patient;
+    private Patient patient; //JPA: dentro tenemos JPQL Java Persistence Query Language, que es un lenguaje de consulta para la base de datos.
 
     @ManyToOne //FK
     @JoinColumn(name = "id_medic", nullable = false, foreignKey = @ForeignKey(name = "FK_CONSULT_MEDIC"))
@@ -39,6 +39,9 @@ public class Consult {
     @Column(nullable = false)
     private LocalDateTime consultDate;
 
+    //orphanRemoval = true : es para que se borren los objetos relacionados en cascada.
+    //FetchType.EAGER : es para que se carguen los objetos relacionados en cascada.
+    //FetchType.LAZY : es para que no se carguen los objetos relacionados en cascada.
     @OneToMany(mappedBy = "consult", cascade = { CascadeType.ALL}, orphanRemoval = true)//, fetch = FetchType.EAGER)
     private List<ConsultDetail> details;
 }

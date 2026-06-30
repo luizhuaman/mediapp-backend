@@ -28,6 +28,7 @@ public class Menu {
     @Column(nullable = false, length = 50)
     private String url;
 
+    //este enfoque de many to many es mas limitante ya que no puedes agregar personalizacion a las columanas la tabla intermedia.
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "menu_role",
             joinColumns = @JoinColumn(name = "id_menu", referencedColumnName = "idMenu"),

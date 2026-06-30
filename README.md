@@ -197,7 +197,7 @@ Asegúrate de tener instalado:
 
 3. **Spring Data JPA:** Ejemplo de un Entity para que lo lea como una tabla en la base de datos:
 
-    integer < long , UUID (caracateres hexadecimales como llave primaria)
+    integer < long | UUID (caracateres hexadecimales como llave primaria)
     @Column sirve para especificar los atributos de la columna en la tabla.
     @Table sirve para renombrar la tabla en la base de datos.
          @Table(name = "patient", schema = "campsys")
@@ -215,6 +215,82 @@ public class Patient {
     @Column(nullable = false, length = 70)
     private String firstName;
 }
+```
+    
+### JPA: dentro tenemos JPQL Java Persistence Query Language, que es un lenguaje de consulta para la base de datos.
+### Ejemplo de llave foranea, relacion de 1 a muchos, muchos a 1 en la clase Consult:
+
+```java
+public class Consult {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    private Integer idConsult;
+
+    @ManyToOne //FK
+    @JoinColumn(name = "id_patient", nullable = false, foreignKey = @ForeignKey(name = "FK_CONSULT_PATIENT"))
+    private Patient patient;
+
+    @ManyToOne //FK
+    @JoinColumn(name = "id_medic", nullable = false, foreignKey = @ForeignKey(name = "FK_CONSULT_MEDIC"))
+    private Medic medic;
+
+    @OneToMany(mappedBy = "consult", cascade = { CascadeType.ALL}, orphanRemoval = true)//, fetch = FetchType.EAGER)
+    private List<ConsultDetail> details;
+}
+```
+
+### Relacion Many to Many:
+
+![Many_to_many](assets/manyToMany.jpg)
+
+
+### Manejo de Errores 404 y 201
+
+```java
+//RESPONSE 404
+//exception.ModelNotFoundException.java
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class ModelNotFoundException extends RuntimeException {
+
+    public ModelNotFoundException(String message) {
+        super(message);
+    }
+}
+
+//service.impl.PatientServiceImpl.java
+@Service
+@RequiredArgsConstructor
+public class PatientServiceImpl implements IPatientService {
+
+    private final IPatientRepo repo;
+
+    @Override
+    public Patient findById(Integer id) {
+        return repo.findById(id).orElseThrow(() -> new ModelNotFoundException("ID NOT FOUND: " + id));
+    }
+}
+
+//RESPONSE 201
+//controller.PatientController.java
+@RestController
+@RequestMapping("${patient.controller.path}")
+@RequiredArgsConstructor
+public class PatientController {
+
+    private final PatientServiceImpl service;
+
+    @PostMapping
+    public ResponseEntity<Patient> save(@RequestBody Patient patient) {
+        
+        Patient obj = service.save(patient);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(obj.getIdPatient()).toUri();
+        
+        return ResponseEntity.created(location).build();
+    }
+}
+
 ```
 
 4. **Ejecutar la aplicación:**
@@ -336,7 +412,7 @@ public Map<String, BigDecimal> analyzeRecentCredits(List<Transaction> transactio
 }
 ```
 <details>
-<summary><b>🔍 Ver implementación: Manejo Centralizado de Errores (@ControllerAdvice)</b></summary>
+<summary><span style="font-size: 24px"><b>🔍 Ver implementación: Manejo Centralizado de Errores (@ControllerAdvice)</b></span></summary>
 
 El proyecto implementa `ProblemDetails` (RFC 7807) para estandarizar las respuestas de error, desacoplando la lógica de negocio del manejo de excepciones HTTP.
 
@@ -367,7 +443,7 @@ public class GlobalExceptionHandler {
 </details>
 
 <details>
-<summary><b>🔍 Ver implementación: Excepciones</b></summary>
+<summary><span style="font-size: 24px"><b>🔍 Ver implementación: Excepciones</b></span></summary>
 
 [URL +Detalle](https://eudriscabrera.com/blog/2024/manejo-de-excepciones-en-java)
 
@@ -376,7 +452,7 @@ Una exception no es más que un error del cual podemos volver (Ej. Division ente
 
 ![Jerarquía de Excepciones](assets/diagram_errors.jpg)
 
-Entonces dentro de las excepciones tenemos checked y unchecked exceptions.
+### Entonces dentro de las excepciones tenemos checked y unchecked exceptions.
 Unchecked Exceptions: Heredan de la clase Runtime Exception y son excepciones que no necesitan ser atrapadas debido a que pueden ser prevenidas a tráves del código limpio por ejemplo comprobar que exista el indice del array (Ej. ArrayIndexOutOfBoundsException)
 Checked Exceptions: Son excepciones que se detectan en tiempo de compilación por el compilador que las detecta como posible fallo y que no pueden ser prevenidas por el programador porque pueden depender de factores externos como que el usuario introduzca un numero invalido o cero (Ej. ArithmeticException).
 Finalmente es una buena práctica ir de la exception más particular a la más general como se muestra a continuación:
@@ -395,6 +471,44 @@ Finalmente es una buena práctica ir de la exception más particular a la más g
         System.err.println("An unexpected error occurred: " + e.getMessage());
     }
 ```
+</details>
+
+
+<details>
+<summary><span style="font-size: 24px"><b>🔍 Richardson Maturity Model</b></span></summary>
+
+## El significado de los niveles
+Cabe destacar que el RMM, si bien es una buena manera de comprender los elementos de REST, no define los niveles de REST en sí. Roy Fielding ha dejado claro que el nivel 3 del RMM es una condición previa para REST . Como ocurre con muchos términos en el ámbito del software, REST tiene numerosas definiciones, pero dado que Roy Fielding acuñó el término, su definición debería tener mayor peso que la mayoría.
+
+Lo que me resulta útil de este RMM es que proporciona una buena guía paso a paso para comprender las ideas básicas del pensamiento relajante. Por ello, lo considero una herramienta para aprender sobre estos conceptos, y no algo que deba utilizarse en algún tipo de mecanismo de evaluación. No creo que tengamos suficientes ejemplos todavía para estar completamente seguros de que el enfoque relajante sea la forma correcta de integrar sistemas, pero sí creo que es un enfoque muy atractivo y el que recomendaría en la mayoría de las situaciones.
+
+En una conversación con Ian Robinson sobre este tema, destacó que algo que le resultó atractivo de este modelo cuando Leonard Richardson lo presentó por primera vez fue su relación con las técnicas de diseño comunes.
+
+<li> El nivel 1 aborda la cuestión de cómo gestionar la complejidad mediante la estrategia de dividir y conquistar, descomponiendo un punto final de servicio grande en múltiples recursos.</li>
+<li> El nivel 2 introduce un conjunto estándar de verbos para que podamos manejar situaciones similares de la misma manera, eliminando variaciones innecesarias.</li>
+<li> El nivel 3 introduce la capacidad de descubrimiento, proporcionando una forma de hacer que un protocolo sea más autodocumentado.</li>
+
+### El resultado es un modelo que nos ayuda a reflexionar sobre el tipo de servicio HTTP que queremos ofrecer y a definir las expectativas de las personas que deseen interactuar con él.
+
+[URL +Detalle](https://martinfowler.com/articles/richardsonMaturityModel.html)
+
+![Steps glory rest](assets/overview.png)
+
+### Ejemplo nivel 2: verbo POST para crear un objeto en la base de datos devuelve Response HTTP 201 (Created) con location header que contiene el URI del recurso creado.
+
+```java
+    @PostMapping
+    public ResponseEntity<Patient> save(@RequestBody Patient patient){
+
+        Patient obj = service.save(patient);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(obj.getIdPatient()).toUri();
+        return ResponseEntity.created(location).build();
+        
+}
+```
+
+![201_created](assets/201_created_nivel_2.jpg)
+
 </details>
 
 ## 👨‍💻 Sobre el Desarrollador

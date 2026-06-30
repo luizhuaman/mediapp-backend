@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Role {
 
-    //No es autoincremental porque cuando llegue a Spring Security tengamos que insertar el codigo de rol, codigo de usuario
+    //No es autoincremental porque cuando llegue a Spring Security tengamos que insertar el codigo de rol, codigo de usuario y otros.
     @Id
     @EqualsAndHashCode.Include
     private Integer idRole;

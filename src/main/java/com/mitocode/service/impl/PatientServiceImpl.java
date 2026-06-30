@@ -1,5 +1,6 @@
 package com.mitocode.service.impl;
 
+import com.mitocode.exception.ModelNotFoundException;
 import com.mitocode.model.Patient;
 import com.mitocode.repo.IPatientRepo;
 import com.mitocode.repo.PatientRepoImpl;
@@ -24,6 +25,7 @@ public class PatientServiceImpl implements IPatientService {
     @Override
     public Patient update(Integer id, Patient patient) {
         //VALIDAR EL ID con java reflexion
+        repo.findById(id).orElseThrow( () -> new ModelNotFoundException("ID NOT FOUND: " + id));
         return repo.save(patient);
     }
 
@@ -34,11 +36,12 @@ public class PatientServiceImpl implements IPatientService {
 
     @Override
     public Patient findById(Integer id) {
-        return repo.findById(id).orElse(new Patient());
+        return repo.findById(id).orElseThrow( () -> new ModelNotFoundException("ID NOT FOUND: " + id));
     }
 
     @Override
     public void delete(Integer id) {
+        repo.findById(id).orElseThrow( () -> new ModelNotFoundException("ID NOT FOUND: " + id));
         repo.deleteById(id);
     }
 

@@ -10,7 +10,7 @@ import java.io.Serializable;
 @Embeddable
 @EqualsAndHashCode
 public class ConsultExamPK implements Serializable {
-    //Serializable - cuando paso de A -> B a traves de la red
+    //Serializable - cuando paso de A -> B a traves de la red, codigo java -> objeto de BD
 
     @ManyToOne
     @JoinColumn(name = "id_consult")

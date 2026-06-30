@@ -20,6 +20,7 @@ public class User {
     @EqualsAndHashCode.Include
     private Integer idUser;
 
+    //unique = true: genera un unique constraint en BD.
     @Column(nullable = false, length = 60, unique = true)
     private String username;
 
