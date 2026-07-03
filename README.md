@@ -293,6 +293,89 @@ public class PatientController {
 
 ```
 
+### Refactoización con genericos
+La idea es que el servicio no tenga que saber el tipo de objeto que va a retornar, por lo que se puede hacer un generico.
+Como segundo punto importante es desacoplar el codigo para que sea mas limpio y facil de mantener.
+
+#### Repository
+```java
+    //IGenericRepo.java
+    // La anotacion @NoRepositoryBean indica que no es un repositorio, es un bean de tipo generico y no se puede instanciar.
+    @NoRepositoryBean
+    public interface IGenericRepo<T, ID> extends JpaRepository<T, ID> {
+        // T Type, K Key, V value, E element
+        // T proviene de la clase padre java.lang.Object
+    }
+    
+    //IMedicRepo.java
+    // El JpaRepository tiene implementado el CRUD y sus atributos son -> <Clase, ID>
+    public interface IMedicRepo extends IGenericRepo<Medic, Integer> {
+    
+    }
+```
+
+#### Service Interface
+```java
+    //IMedicService.java
+    public interface ICRUD<T, ID> {
+        T save(T t);
+        T update(ID id, T t);
+        List<T> findAll();
+        T findById(ID id);
+        void delete(ID id);
+    }
+    
+    //IMedicService.java
+    public interface IMedicService extends ICRUD<Medic, Integer>{
+        List<Medic> getOldestMedics();
+    }
+
+```
+
+#### Service Implementation
+```java
+
+//IMedicServiceImpl.java
+    public abstract class CRUDImpl<T, ID> implements ICRUD<T, ID> {
+    
+        //se necesita de algo que cambie segun quien lo invoque, es decir, que sea polimorfico.
+        //y que tome el generico de repo que es IGenericRepo.
+        protected abstract IGenericRepo<T, ID> getRepo();
+    
+        @Override
+        public T save(T t) {
+            return getRepo().save(t);
+        }
+    
+        @Override
+        public T update(ID id, T t) {
+            getRepo().findById(id).orElseThrow(() -> new ModelNotFoundException("ID NOT FOUND: " + id));
+            return getRepo().save(t);
+        }
+    }
+    
+//La clase MedicServiceImpl.java hereda de la clase abstracta CRUDImpl e implementa la interfaz IMedicService.
+//Heredar significa tener acceso a todos los metodos de la clase padre.
+//Implementar significa sobreescribir los metodos que se encuentran en la interfaz.
+//MedicServiceImpl.java
+public class MedicServiceImpl extends CRUDImpl<Medic, Integer> implements IMedicService {
+
+    //@Autowired
+    private final IMedicRepo repo;
+
+    @Override
+    protected IGenericRepo<Medic, Integer> getRepo() {
+        return repo;
+    }
+
+    @Override
+    public List<Medic> getOldestMedics() {
+        return null;
+    }
+}
+
+```
+
 4. **Ejecutar la aplicación:**
     ```bash
     ./mvnw spring-boot:run

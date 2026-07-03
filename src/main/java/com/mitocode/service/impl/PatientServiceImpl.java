@@ -2,6 +2,7 @@ package com.mitocode.service.impl;
 
 import com.mitocode.exception.ModelNotFoundException;
 import com.mitocode.model.Patient;
+import com.mitocode.repo.IGenericRepo;
 import com.mitocode.repo.IPatientRepo;
 import com.mitocode.repo.PatientRepoImpl;
 import com.mitocode.service.IPatientService;
@@ -12,11 +13,18 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class PatientServiceImpl implements IPatientService {
+public class PatientServiceImpl extends CRUDImpl<Patient, Integer> implements IPatientService {
 
     //@Autowired
     private final IPatientRepo repo; // = new PatientRepo();
 
+    //Sobreescribo el metodo abstracto de la clase padre
+    @Override
+    protected IGenericRepo<Patient, Integer> getRepo() {
+        return repo;
+    }
+
+    /*
     @Override
     public Patient save(Patient patient) {
         return repo.save(patient);
@@ -44,6 +52,7 @@ public class PatientServiceImpl implements IPatientService {
         repo.findById(id).orElseThrow( () -> new ModelNotFoundException("ID NOT FOUND: " + id));
         repo.deleteById(id);
     }
+     */
 
     /*
     public PatientService(PatientRepo repo) {
