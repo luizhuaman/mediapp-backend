@@ -1,5 +1,6 @@
 package com.mitocode.controller;
 
+import com.mitocode.dto.PatientDTO;
 import com.mitocode.model.Patient;
 import com.mitocode.service.impl.PatientServiceImpl;
 import lombok.AllArgsConstructor;
@@ -34,8 +35,9 @@ public class PatientController {
 
 
     @GetMapping
-    public ResponseEntity<List<Patient>> findAll(){
-        List<Patient> list = service.findAll();
+    public ResponseEntity<List<PatientDTO>> findAll(){
+        List<PatientDTO> list = service.findAll().stream()
+                .map(e -> new PatientDTO(e.getIdPatient(), e.getFirstName(), e.getLastName(), e.getDni(), e.getAddress(), e.getPhone(), e.getEmail())).toList();
 
         //Gano: poder controlar el estado de la respuesta HTTP
         return ResponseEntity.ok(list);
