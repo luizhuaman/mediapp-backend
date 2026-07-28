@@ -594,6 +594,212 @@ En una conversación con Ian Robinson sobre este tema, destacó que algo que le 
 
 </details>
 
+<details>
+<summary><span style="font-size: 24px"><b>🔍 Data Transfer Object : DTO</b></span></summary>
+
+### El significado
+    Existen situaciones en las que las entidades nos devuelven demasiada información y en una pantalla necesitamos una información concreta. 
+    Es aquí donde un DTO (Data Transfer Object) nos ayudan ya que nos permiten crear una clase que contenga únicamente los atributos necesarios.
+    
+    cuando es expresion lambda ( "stream()" ) "->" y programacion funcional funciona el ::
+
+    Spring: inyeccion de dependencia para que gestione la instancia de modelMapper
+    Como es clase de configuracion de spring -> @Configuration -> @Bean
+
+
+```java
+    public class PatientDTO {
+        private Integer idPatient;
+        private String firstName;
+        private String lastName;
+        private String dni;
+        private String address;
+        private String phone;
+        private String email;
+    }
+    
+    
+    public class PatientController {
+    
+        //@Autowired
+        private final PatientServiceImpl service;
+        private final ModelMapper modelMapper;
+    
+    
+        @GetMapping
+        public ResponseEntity<List<PatientDTO>> findAll(){
+            List<PatientDTO> list = service.findAll().stream()
+                    .map(this::convertToDTO).toList();
+            //cuando es expresion lambda "->" y programacion funcional funciona el ::
+    
+            return ResponseEntity.ok(list);
+        }
+    
+        @GetMapping("/{id}")
+        public ResponseEntity<PatientDTO> findById(@PathVariable("id") Integer id){
+            Patient obj = service.findById(id);
+    
+            return ResponseEntity.ok(convertToDTO(obj));
+        }
+    
+        @PostMapping
+        public ResponseEntity<Void> save(@RequestBody PatientDTO dto){
+    
+            Patient obj = service.save(convertToEntity(dto));
+    
+            URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(obj.getIdPatient()).toUri();
+    
+            return ResponseEntity.created(location).build();
+        }
+    
+        @PutMapping("/{id}")
+        public ResponseEntity<PatientDTO> update(@PathVariable("id") Integer id, @RequestBody PatientDTO dto){
+            dto.setIdPatient(id);
+            Patient obj = service.update(id ,convertToEntity(dto));
+    
+            return ResponseEntity.ok(convertToDTO(obj));
+        }
+    
+        //Transforma/Guarda el obj Patient (@Entity) -> DTO 
+        private PatientDTO convertToDTO(Patient obj){
+            return modelMapper.map(obj, PatientDTO.class);
+        }
+    
+        //Transforma/Guarda el DTO -> obj Patient (@Entity) 
+        private Patient convertToEntity(PatientDTO dto){
+            return modelMapper.map(dto, Patient.class);
+        }
+    
+    }
+    
+    Spring: inyeccion de dependencia para que gestione la instancia de modelMapper
+    Como es clase de configuracion de spring -> @Configuration -> @Bean
+    
+    import org.modelmapper.ModelMapper;
+    import org.springframework.context.annotation.Bean;
+    import org.springframework.context.annotation.Configuration;
+    
+    @Configuration
+    public class MapperConfig {
+    
+        @Bean
+        public ModelMapper modelMapper() {
+            return new ModelMapper();
+        }
+    
+    }
+```
+
+</details>
+
+
+<details>
+<summary><span style="font-size: 24px"><b>🔍 Spring Hateoas - nivel 3 Richardson </b></span></summary>
+
+#### Spring HATEOAS es una librería del ecosistema de Spring que ayuda a crear APIs REST bajo el principio HATEOAS (Hypermedia as the Engine of Application State). Permite que las respuestas del servidor incluyan enlaces hipermedia para que el cliente descubra de forma dinámica las acciones disponibles.
+
+```java
+
+//libreria para traer hateoas - Nivel 3 Richardson -->
+/*
+En el POM.xml
+<dependency>
+    <groupId>org.springframework.hateoas</groupId>
+    <artifactId>spring-hateoas</artifactId>
+    <scope>compile</scope>
+</dependency>
+*/
+
+@GetMapping("/hateoas/{id}")
+public EntityModel<PatientDTO> findByIdHateoas(@PathVariable("id") Integer id){
+    EntityModel<PatientDTO> resource = EntityModel.of(convertToDTO(service.findById(id)));
+    WebMvcLinkBuilder link1 = linkTo(methodOn(this.getClass()).findById(id));
+    WebMvcLinkBuilder link2 = linkTo(methodOn(this.getClass()).findAll());
+    resource.add(link1.withRel("patient-info-byId"));
+    resource.add(link2.withRel("patient-all-info"));
+
+    return resource;
+    
+}
+
+```
+
+![Spring_hateoas](assets/spring_hateoas_api.jpg)
+
+</details>
+
+</details>
+
+
+<details>
+<summary><span style="font-size: 24px"><b>🔍 ModelMapper TypeMap & Debug </b></span></summary>
+
+#### ModelMapper sirve para mapear objetos entre diferentes tipos de clases. En este caso se utiliza para convertir objetos de la clase DTO a la clase Entity y viceversa.
+#### Para la inyección de dependencias del model maper se tiene que agregar la anotacion @Qualifier("xxx")
+#### Luego, lombok no tama en su inyeccion de dependencias por @RequiredArgsConstructor a @Qualifier, para eso se agrega el lombok.config 
+
+```java
+
+@Configuration
+public class MapperConfig {
+
+    @Bean("defaultMapper")
+    public ModelMapper defaultMapper() {
+        return new ModelMapper();
+    }
+
+    @Bean("medicMapper")
+    public ModelMapper medicMapper() {
+        ModelMapper mapper = new ModelMapper();
+
+        //Escritura
+        TypeMap<MedicDTO, Medic> typeMap1 = mapper.createTypeMap(MedicDTO.class, Medic.class);
+        typeMap1.addMapping(MedicDTO::getPrimaryName, (dest, v)-> dest.setFirstName((String) v));
+        typeMap1.addMapping(MedicDTO::getSurname, (dest, v)-> dest.setLastName((String) v));
+        typeMap1.addMapping(MedicDTO::getPhoto, (dest, v)-> dest.setPhotoUrl((String) v));
+        //Lectura
+        TypeMap<Medic, MedicDTO> typeMap2 = mapper.createTypeMap(Medic.class, MedicDTO.class);
+        typeMap2.addMapping(Medic::getFirstName, (dest, v)-> dest.setPrimaryName((String) v));
+        typeMap2.addMapping(Medic::getLastName, (dest, v)-> dest.setSurname((String) v));
+
+        return mapper;
+    }
+}
+
+//En el PatientController.java se tiene que inyectar el bean correspondiente
+public class PatientController {
+
+    //@Autowired
+    private final PatientServiceImpl service; // = new PatientService();
+
+    @Qualifier("defaultMapper")
+    private final ModelMapper modelMapper;
+}
+
+//A su vez en lombok.config se tiene que declarar la anotacion para que cargue con el bean correspondiente
+    lombok.copyableAnnotations += org.springframework.beans.factory.annotation.Qualifier
+
+
+//Podemos debugear para saber si se mapean las variables al momento de leer o escribir
+localhost:8080/medics
+    {
+        "primaryName" : "Dr. Perez",
+            "surname" : "Perez",
+            "cmpMedic" : "1472347",
+            "photo" : "https://static0.srcdn.com/wordpress/wp-content/uploads/2021/11/spiderman-no-way-home-debunks-major-doctor-octopus-theory.jpg"
+    }
+
+    Teclas en debug
+    F9: liberar el debug y que la app siga corriendo
+    F8: Ir a la siguiente linea
+    Tambien podemos evaluar expresiones o metodos.
+
+```
+
+![Debug](assets/debug_f8_f9_evaluate.jpg)
+
+</details>
+
 ## 👨‍💻 Sobre el Desarrollador
 
 Este proyecto es mantenido por **Luis Huaman**, un profesional híbrido (Backend Developer & Data Engineer) apasionado por la calidad del software y la inteligencia de datos.
