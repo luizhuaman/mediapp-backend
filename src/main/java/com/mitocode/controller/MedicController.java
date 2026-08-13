@@ -3,6 +3,7 @@ package com.mitocode.controller;
 import com.mitocode.dto.MedicDTO;
 import com.mitocode.model.Medic;
 import com.mitocode.service.impl.MedicServiceImpl;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -44,7 +45,7 @@ public class MedicController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> save(@RequestBody MedicDTO dto){
+    public ResponseEntity<Void> save(@Valid @RequestBody MedicDTO dto){
         Medic obj = service.save(convertToEntity(dto));
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(obj.getIdMedic()).toUri();
 
@@ -52,7 +53,7 @@ public class MedicController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MedicDTO> update(@PathVariable("id") Integer id, @RequestBody MedicDTO dto){
+    public ResponseEntity<MedicDTO> update(@Valid @PathVariable("id") Integer id, @RequestBody MedicDTO dto){
         dto.setIdMedic(id);
         Medic obj = service.update(id ,convertToEntity(dto));
 

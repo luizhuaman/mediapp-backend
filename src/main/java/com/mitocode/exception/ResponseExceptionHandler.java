@@ -4,17 +4,26 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.ErrorResponse;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import java.net.URI;
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class ResponseExceptionHandler {
 
-    /*
+    //para controlar la clase padre de las excepciones se realiza lo siguiente
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<CustomErrorResponse> handleAllException(Exception ex, WebRequest request) {
+        CustomErrorResponse err = new CustomErrorResponse(LocalDateTime.now(), ex.getMessage(), request.getDescription(false));
+
+        return new ResponseEntity<>(err, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     //Esta clase funciona como un interceptor de excepciones y lo muestra en formato JSON
     //Para Spring boot 2.x
     @ExceptionHandler(ModelNotFoundException.class)
@@ -23,7 +32,18 @@ public class ResponseExceptionHandler {
 
         return new ResponseEntity<>(err, HttpStatus.NOT_FOUND);
     }
-     */
+
+    //para controlar la excepcion de bad request se realiza lo siguiente
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<CustomErrorResponse> handleArgumentNotValid(MethodArgumentNotValidException ex, WebRequest request) {
+        String msg = ex.getBindingResult().getFieldErrors().stream()
+                .map(e -> e.getField().concat(": ").concat(e.getDefaultMessage()))
+                .collect(Collectors.joining(", "));
+
+        CustomErrorResponse err = new CustomErrorResponse(LocalDateTime.now(), msg, request.getDescription(false));
+
+        return new ResponseEntity<>(err, HttpStatus.BAD_REQUEST);
+    }
 
     /*
     @ExceptionHandler(ModelNotFoundException.class)
@@ -47,6 +67,7 @@ public class ResponseExceptionHandler {
     }
     */
 
+    /*
     @ExceptionHandler(ModelNotFoundException.class)
     public ErrorResponse handleModelNotFoundException(ModelNotFoundException ex, WebRequest request) {
 
@@ -57,5 +78,6 @@ public class ResponseExceptionHandler {
                 .property("extra2", 55)
                 .build();
     }
+    */
 
 }

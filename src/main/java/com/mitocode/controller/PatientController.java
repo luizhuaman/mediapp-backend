@@ -3,6 +3,7 @@ package com.mitocode.controller;
 import com.mitocode.dto.PatientDTO;
 import com.mitocode.model.Patient;
 import com.mitocode.service.impl.PatientServiceImpl;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -64,7 +65,7 @@ public class PatientController {
 
     //@RequestBody -> es para leer el cuerpo de la peticion/request
     @PostMapping
-    public ResponseEntity<Void> save(@RequestBody PatientDTO dto){
+    public ResponseEntity<Void> save(@Valid @RequestBody PatientDTO dto){
 
         Patient obj = service.save(convertToEntity(dto));
 
@@ -76,7 +77,7 @@ public class PatientController {
     //mapeamos el id en la clase Patient para que el metodo PUT sepa que tiene que actualizar un registro
     //como el body no tiene el id, se usa el setIdPatient(id)
     @PutMapping("/{id}")
-    public ResponseEntity<PatientDTO> update(@PathVariable("id") Integer id, @RequestBody PatientDTO dto){
+    public ResponseEntity<PatientDTO> update(@Valid @PathVariable("id") Integer id, @RequestBody PatientDTO dto){
         dto.setIdPatient(id);
         Patient obj = service.update(id ,convertToEntity(dto));
 

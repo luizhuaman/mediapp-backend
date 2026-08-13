@@ -776,6 +776,14 @@ public class PatientController {
     private final ModelMapper modelMapper;
 }
 
+public class MedicController {
+
+    private final MedicServiceImpl service;
+
+    @Qualifier("medicMapper")
+    private final ModelMapper modelMapper;
+}    
+
 //A su vez en lombok.config se tiene que declarar la anotacion para que cargue con el bean correspondiente
     lombok.copyableAnnotations += org.springframework.beans.factory.annotation.Qualifier
 
@@ -797,6 +805,94 @@ localhost:8080/medics
 ```
 
 ![Debug](assets/debug_f8_f9_evaluate.jpg)
+
+</details>
+
+
+
+<details>
+<summary><span style="font-size: 24px"><b>🔍 Jakarta validation constraint & Response exception handler </b></span></summary>
+
+#### Jakarta validation constraint es una libreria que nos permite validar los datos que llegan a nuestro controlador. Existen muchas anotaciones que nos permiten validar los datos que llegan a nuestro controlador.
+
+```java
+import jakarta.validation.constraints.*;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class PatientDTO {
+    private Integer idPatient;
+
+    @NotNull
+    @Size(min = 3, max = 70)
+    private String firstName;
+
+    @NotNull
+    @Size(min = 3, max = 70)
+    private String lastName;
+
+    @NotNull
+    private String dni;
+
+    @NotNull
+    private String address;
+
+    @NotNull
+    @Pattern(regexp = "[0-9]+")
+    private String phone;
+
+    @NotNull
+    @Email
+    private String email;
+}
+```
+Como vemos en la imagen el firstName es "Ja" y no cumple con la anotacion @Size(min = 3, max = 70) por lo que nos muestra un error. Pero el mensaje no es espcifico.
+![Error400](assets/badRequest_error400.jpg)
+
+### ResponseExceptionHandler
+#### Para solucionar este error se utiliza el ResponseExceptionHandler que nos permite manejar los errores de validacion.
+
+```java
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
+
+@RestControllerAdvice
+public class ResponseExceptionHandler {
+
+    //para controlar la clase padre de las excepciones se realiza lo siguiente
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<CustomErrorResponse> handleAllException(Exception ex, WebRequest request) {
+        CustomErrorResponse err = new CustomErrorResponse(LocalDateTime.now(), ex.getMessage(), request.getDescription(false));
+
+        return new ResponseEntity<>(err, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    //Esta clase funciona como un interceptor de excepciones y lo muestra en formato JSON
+    //Para Spring boot 2.x
+    @ExceptionHandler(ModelNotFoundException.class)
+    public ResponseEntity<CustomErrorResponse> handleModelNotFoundException(ModelNotFoundException ex, WebRequest request) {
+        CustomErrorResponse err = new CustomErrorResponse(LocalDateTime.now(), ex.getMessage(), request.getDescription(false));
+
+        return new ResponseEntity<>(err, HttpStatus.NOT_FOUND);
+    }
+
+    //para controlar la excepcion de bad request error 400 se realiza lo siguiente
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<CustomErrorResponse> handleArgumentNotValid(MethodArgumentNotValidException ex, WebRequest request) {
+        String msg = ex.getBindingResult().getFieldErrors().stream()
+                .map(e -> e.getField().concat(": ").concat(e.getDefaultMessage()))
+                .collect(Collectors.joining(", "));
+
+        CustomErrorResponse err = new CustomErrorResponse(LocalDateTime.now(), msg, request.getDescription(false));
+
+        return new ResponseEntity<>(err, HttpStatus.BAD_REQUEST);
+    }
+}
+```
+![Error400_v2](assets/badRequest_error400_v2.jpg)
 
 </details>
 
